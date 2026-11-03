@@ -1,0 +1,289 @@
+<UserControl x:Class="MailSender.Views.ContactsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="900">
+    <Grid Margin="32,24,32,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /> <!-- Header -->
+            <RowDefinition Height="Auto" /> <!-- Toolbar -->
+            <RowDefinition Height="Auto" /> <!-- Selection Bar -->
+            <RowDefinition Height="*" />    <!-- Content (Table or Empty) -->
+            <RowDefinition Height="Auto" /> <!-- Bottom Info Note -->
+        </Grid.RowDefinitions>
+
+        <!-- Page Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Danh bạ" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <!-- Subtitle when filled -->
+                <TextBlock Text="Kết nối đúng người, gửi thư nhanh hơn." FontSize="14" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"
+                           Visibility="{Binding HasContacts, Converter={StaticResource BoolToVisibility}}" />
+                <!-- Subtitle when empty -->
+                <TextBlock Text="0 liên hệ · Lưu một lần, gửi thư dễ dàng hơn." FontSize="14" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"
+                           Visibility="{Binding HasContacts, Converter={StaticResource InvertBoolToVisibility}}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <!-- Add Contact button -->
+                <Button Style="{StaticResource PrimaryButton}" Height="38" Padding="16,0"
+                        Command="{Binding OpenAddContactDialogCommand}">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Path Data="{StaticResource IconPlus}" Fill="White" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" StrokeThickness="1" />
+                        <TextBlock Text="Thêm liên hệ" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Search & Filter Toolbar -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Search box -->
+            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" CornerRadius="6" Height="38" Margin="0,0,12,0" Padding="12,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Path Grid.Column="0" Data="{StaticResource IconSearch}" Fill="{StaticResource TextPlaceholderBrush}" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                             Text="{Binding SearchContactText, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
+            </Border>
+
+            <!-- Right Filters & Actions -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <!-- Group filter combobox -->
+                <ComboBox Width="160" Height="38" Margin="0,0,10,0" Style="{StaticResource ModernComboBox}"
+                          SelectedValue="{Binding SelectedGroupFilter, Mode=TwoWay}" SelectedValuePath="Content">
+                    <ComboBoxItem Content="Tất cả nhóm" IsSelected="True" />
+                    <ComboBoxItem Content="Nhóm chung" />
+                </ComboBox>
+
+                <!-- Import button -->
+                <Button Style="{StaticResource SecondaryButton}" Height="38" Padding="14,0" Margin="0,0,10,0"
+                        Command="{Binding ImportContactsCsvCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconUpload}" Fill="{StaticResource TextPrimaryBrush}" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock Text="Nhập" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Export CSV button -->
+                <Button Style="{StaticResource SecondaryButton}" Height="38" Padding="14,0"
+                        Command="{Binding ExportContactsCsvCommand}"
+                        IsEnabled="{Binding HasContacts}">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconDownload}" Fill="{StaticResource TextPrimaryBrush}" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock Text="Xuất CSV" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Selection Bar (when contacts are selected) -->
+        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" CornerRadius="6" Padding="14,8" Margin="0,0,0,12">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedContactsCount}" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding HasContacts}" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid>
+                <TextBlock Text="{Binding SelectedContactsCount, StringFormat='{}{0} liên hệ được chọn'}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- Compose to selected -->
+                    <Button Style="{StaticResource SecondaryButton}" Height="32" Padding="10,0" Margin="0,0,8,0"
+                            Command="{Binding ComposeToSelectedContactsCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconCompose}" Fill="{StaticResource TextPrimaryBrush}" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <TextBlock Text="Soạn thư" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Change group -->
+                    <Button Style="{StaticResource SecondaryButton}" Height="32" Padding="10,0" Margin="0,0,8,0" Click="ChangeGroup_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconFolder}" Fill="{StaticResource TextPrimaryBrush}" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <TextBlock Text="Đổi nhóm" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Delete button -->
+                    <Button Style="{StaticResource DangerOutlinedButton}" Height="32" Padding="10,0"
+                            Command="{Binding DeleteSelectedContactsCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconTrash}" Fill="{StaticResource ErrorBrush}" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <TextBlock Text="Xóa" FontSize="12.5" FontWeight="Medium" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ========================================== -->
+        <!-- STATE A: CONTACTS DATA TABLE               -->
+        <!-- ========================================== -->
+        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,12"
+                Visibility="{Binding HasContacts, Converter={StaticResource BoolToVisibility}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Table Header -->
+                <Border Grid.Row="0" Background="#FAFAFA" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1" Padding="16,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition Width="240" />
+                            <ColumnDefinition Width="280" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="80" />
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Column="0" IsChecked="True" Style="{StaticResource ModernCheckBox}" VerticalAlignment="Center"
+                                  Checked="SelectAll_Checked" Unchecked="SelectAll_Unchecked" />
+                        <TextBlock Grid.Column="1" Text="Họ và tên" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="Địa chỉ email" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Text="Nhóm" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Rows -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding FilteredContacts}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="0,0,0,1" Padding="16,10">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="Background" Value="#F0F7FF" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="240" />
+                                            <ColumnDefinition Width="280" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="80" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Checkbox -->
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}" Style="{StaticResource ModernCheckBox}" VerticalAlignment="Center" />
+
+                                        <!-- Họ và tên with Avatar Circle -->
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="28" Height="28" CornerRadius="14" Background="#F1F5F9" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding Initials}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Text="{Binding Name}" FontSize="13.5" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- Địa chỉ email -->
+                                        <TextBlock Grid.Column="2" Text="{Binding Email}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                                        <!-- Nhóm -->
+                                        <TextBlock Grid.Column="3" Text="{Binding Group}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                                        <!-- Row Action Icons: Edit & More -->
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Style="{StaticResource GhostButton}" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="Sửa liên hệ"
+                                                    Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.OpenEditContactDialogCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <Path Data="{StaticResource IconPencil}" Fill="{StaticResource TextMutedBrush}" Width="12" Height="12" Stretch="Uniform" />
+                                            </Button>
+                                            <Button Style="{StaticResource GhostButton}" Width="28" Height="28" Padding="0" ToolTip="Tùy chọn" Click="RowMoreOptions_Click">
+                                                <Path Data="{StaticResource IconMoreDots}" Fill="{StaticResource TextMutedBrush}" Width="14" Height="14" Stretch="Uniform" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Footer Stats -->
+                <Border Grid.Row="2" Background="#FAFAFA" Padding="16,10">
+                    <Grid>
+                        <TextBlock Text="Hiển thị liên hệ theo danh bạ" FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock HorizontalAlignment="Right" Text="Trang 1 / 1" FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ========================================== -->
+        <!-- STATE B: EMPTY CONTACTS                    -->
+        <!-- ========================================== -->
+        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,12"
+                Visibility="{Binding HasContacts, Converter={StaticResource InvertBoolToVisibility}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,40">
+                <!-- Large Icon Circle / Box -->
+                <Border Background="{StaticResource PrimarySoftBgBrush}" Width="80" Height="80" CornerRadius="20" HorizontalAlignment="Center" Margin="0,0,0,20">
+                    <Path Data="{StaticResource IconContacts}" Fill="{StaticResource PrimaryBrush}" Width="36" Height="36" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+
+                <!-- Title & Subtitle -->
+                <TextBlock Text="Danh bạ của bạn đang trống" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                <TextBlock Text="Thêm liên hệ đầu tiên hoặc nhập danh sách CSV.&#x0a;Bạn sẽ không cần gõ lại địa chỉ ở lần gửi tiếp theo."
+                           FontSize="13.5" Foreground="{StaticResource TextMutedBrush}" TextAlignment="Center" LineHeight="20" HorizontalAlignment="Center" Margin="0,0,0,24" />
+
+                <!-- Action Buttons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,16">
+                    <Button Style="{StaticResource PrimaryButton}" Height="38" Padding="18,0" Margin="0,0,12,0"
+                            Command="{Binding OpenAddContactDialogCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconPlus}" Fill="White" Width="10" Height="10" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Thêm liên hệ" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource SecondaryButton}" Height="38" Padding="16,0"
+                            Command="{Binding ImportContactsCsvCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconUpload}" Fill="{StaticResource TextPrimaryBrush}" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Nhập CSV" FontSize="13.5" FontWeight="Medium" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- CSV Note -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Path Data="{StaticResource IconFile}" Fill="{StaticResource TextMutedBrush}" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <TextBlock Text="CSV cần có hai cột: Name và Email" FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Bottom Note -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Center">
+            <Path Data="{StaticResource IconShieldCheck}" Fill="{StaticResource TextMutedBrush}" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <TextBlock Text="Nhập CSV có cột Name và Email để sử dụng tên trong thư hàng loạt." FontSize="12.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+    </Grid>
+</UserControl>

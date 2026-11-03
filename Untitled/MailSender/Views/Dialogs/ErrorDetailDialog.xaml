@@ -1,0 +1,61 @@
+<UserControl x:Class="MailSender.Views.Dialogs.ErrorDetailDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="480">
+    <Border Background="White" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" CornerRadius="12" Padding="24"
+            Effect="{StaticResource ModalShadowEffect}">
+        <StackPanel>
+            <!-- Title Bar -->
+            <Grid Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="{StaticResource ErrorBgBrush}" CornerRadius="6" Width="28" Height="28" Margin="0,0,10,0">
+                        <Path Data="{StaticResource IconEnvelope}" Fill="{StaticResource ErrorBrush}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="Thư chưa được gửi" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button HorizontalAlignment="Right" Style="{StaticResource GhostButton}" Width="28" Height="28" Padding="0"
+                        Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.CloseModalCommand}">
+                    <Path Data="{StaticResource IconClose}" Fill="{StaticResource TextMutedBrush}" Width="10" Height="10" Stretch="Uniform" />
+                </Button>
+            </Grid>
+
+            <!-- Recipient & Meta -->
+            <StackPanel Margin="0,0,0,12">
+                <TextBlock Text="{Binding SelectedErrorHistory.Recipient}" FontSize="14.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding SelectedErrorHistory.Subject}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                <TextBlock Text="{Binding SelectedErrorHistory.TimePrimary, StringFormat='{}{0} · Giờ Việt Nam'}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,2,0,0" />
+            </StackPanel>
+
+            <!-- Separator -->
+            <Rectangle Height="1" Fill="{StaticResource BorderLightBrush}" Margin="0,0,0,14" />
+
+            <!-- Problem Explanation -->
+            <StackPanel Margin="0,0,0,16">
+                <TextBlock Text="{Binding SelectedErrorHistory.ErrorReason}" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6" />
+                <TextBlock Text="Kiểm tra cấu hình SMTP và thử gửi lại."
+                           FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" LineHeight="19" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- Technical Info Box -->
+            <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderLightBrush}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="THÔNG TIN KỸ THUẬT" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6" />
+                    <TextBlock Text="{Binding SelectedErrorHistory.TechnicalDetails}" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <!-- Footer Buttons -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Mở cài đặt" Style="{StaticResource SecondaryButton}" Height="38" Padding="16,0" Margin="0,0,10,0"
+                        Click="OpenSettings_Click" />
+                <Button Style="{StaticResource PrimaryButton}" Height="38" Padding="16,0"
+                        Command="{Binding RetrySendErrorHistoryCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconRefresh}" Fill="White" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock Text="Thử gửi lại" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>
